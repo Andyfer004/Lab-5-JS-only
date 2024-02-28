@@ -49,6 +49,9 @@ textField.style.background = "rgb(0,0,0,0.4)";
 textField.style.color = "white";
 textField.style.border = "none";
 textField.style.flexGrow = "1";
+textField.maxLength = 140;
+
+
 
 const archivebutton = document.createElement('button');
 archivebutton.textContent = '📁';
@@ -89,9 +92,9 @@ header.style.justifyContent = 'space-between'; // Opcional: espacia los elemento
 
 
 const headerText = document.createElement('h1');
-headerText.textContent = 'Chat With Server of Web Class';
+headerText.textContent = 'Chat of class';
 headerText.style.color = 'white';
-headerText.style.fontSize = '3vh';
+headerText.style.fontSize = '2vh';
 headerText.style.fontFamily = 'Times New Roman';
 headerText.style.textAlign = 'center';
 headerText.style.flexGrow = '1';
@@ -108,17 +111,150 @@ swap.style.borderRadius = '10px';
 swap.style.border = 'none';
 swap.style.background = 'rgb(0,0,0,0.4)';
 swap.style.color = 'white';
-swap.style.width = '8%';
+swap.style.width = '20%';
 swap.style.height = '50%';
 
 
 const middleContainer = document.createElement('div');
-middleContainer.style.flexGrow = '1';
+middleContainer.style.flexGrow = '0.8';
 middleContainer.style.backgroundColor = 'rgba(0,0,0,0.6)';
 middleContainer.style.borderRadius = '0 0 20px 20px';
 middleContainer.style.margin = '0% 2% 2% 2%';
+middleContainer.style.overflowY = 'scroll';
 
 
+
+const textfieldforchat = document.createElement('input');
+textfieldforchat.type = 'text'; // Establece el tipo de input como text
+textfieldforchat.style.paddingLeft = '5%'; // Añade un padding de 10px
+textfieldforchat.style.paddingRight = '3%'; // Añade un padding de 10px
+textfieldforchat.style.fontSize = '2vh';
+textfieldforchat.placeholder = 'Search'; // Opcional: añade un placeholder 
+textfieldforchat.style.height = "5%";
+textfieldforchat.style.width = "90%";
+textfieldforchat.style.margin = "5%";
+textfieldforchat.style.borderRadius = "10px";
+textfieldforchat.style.background = "rgb(0,0,0,0.4)";
+textfieldforchat.style.color = "white";
+textfieldforchat.style.border = "none";
+
+
+
+
+const card = document.createElement('button');
+card.style.position = 'relative';
+card.style.width = '90%';
+card.style.height = '10%'; // Ajusta la altura según necesites
+card.style.margin = "5%";
+card.style.borderRadius = "10px";
+card.style.backgroundColor = "rgb(0, 0,0,0.4)";
+card.style.display = 'flex'; // Activa Flexbox
+card.textContent = 'Chat Server of class';
+card.style.fontSize = '2vh';
+card.style.color = 'white';
+card.style.padding = '10%';
+card.style.alignItems = 'center'; // Opcional: centra los elementos verticalmente
+
+
+// Suponiendo que tienes un elemento con id="chatContainer" para contener los mensajes
+
+function addMessageToChat(username, message) {
+    const messageElement = document.createElement('div');
+    messageElement.style.borderRadius = '10px';
+    messageElement.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    messageElement.style.color = 'white';
+    messageElement.className = 'chat-message';
+    messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+    messageElement.style.padding = '2%';
+    messageElement.style.margin = '1%';
+    messageElement.style.maxWidth = '50%';
+    messageElement.style.overflow = 'auto';
+    messageElement.style.borderRadius = '10px';
+    messageElement.style.wordWrap = 'break-word';
+
+    function isImageLink(text) {
+        // Puedes mejorar esta lógica según tus necesidades
+        return /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(text);
+      }
+    
+      // Si es un enlace a una imagen, mostrar la vista previa
+      if (isImageLink(message)) {
+        const imageElement = document.createElement('img');
+        imageElement.src = message;
+        imageElement.style.maxWidth = '100%';
+        imageElement.style.height = 'auto';
+        messageElement.appendChild(imageElement);
+      } else {
+        // Si no es un enlace a una imagen, mostrar el texto normal
+        messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+      }
+    
+
+    messageElement.style.backgroundColor = 'rgba(0,0,0,1)';
+    middleContainer.appendChild(messageElement);
+    middleContainer.scrollTop = middleContainer.scrollHeight;
+  }
+
+  sendButton.addEventListener('click', () => {
+    sendMessage();
+  });
+
+  // Agrega un evento de tecla al campo de entrada
+  textField.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  function sendMessage() {
+    const message = textField.value.trim();
+  
+    if (message !== '') {
+      // Puedes utilizar fetch para enviar el mensaje al servidor
+      fetch('https://chat.tiburoncin.lat/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: 'Andy', message: message }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Agrega el mensaje enviado al chat localmente
+          addMessageToChat(Andy, message);
+        })
+        .catch(error => {
+          console.error('There has been a problem with your fetch operation:', error);
+        });
+  
+      // Limpiar el campo de texto después de enviar el mensaje
+      textField.value = '';
+    }
+  }
+
+  fetch('https://chat.tiburoncin.lat/messages')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok ' + response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+
+        const mensajesEnOrdenDescendente = data.reverse();
+
+        mensajesEnOrdenDescendente.forEach(message => {
+            addMessageToChat(message.username, message.message);
+        });
+    })
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+    });
 
 document.body.appendChild(leftDiv);
 document.body.appendChild(rightDiv);
@@ -130,3 +266,6 @@ container.appendChild(textField);
 container.appendChild(sendButton);
 header.appendChild(headerText);
 header.appendChild(swap);
+leftDiv.appendChild(textfieldforchat);
+leftDiv.appendChild(card);
+
