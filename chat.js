@@ -182,6 +182,35 @@ function addMessageToChat(username, message) {
         // Puedes mejorar esta lógica según tus necesidades
         return /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i.test(text);
       }
+      const webLinkRegex = /(https?:\/\/[^\s]+)/gi;
+      const matches = message.match(webLinkRegex);
+
+      if (matches && matches.length > 0) {
+          // If a web link is found, create a preview element
+          const previewElement = document.createElement('div');
+          
+          // Use fetch to get information about the link
+          fetch(matches[0])
+              .then(response => response.text())
+              .then(html => {
+                  const parser = new DOMParser();
+                  const doc = parser.parseFromString(html, 'text/html');
+                  const title = doc.querySelector('head title').textContent;
+
+                  previewElement.innerHTML = `<a href="${matches[0]}" target="_blank">${title}</a>`;
+                  previewElement.style.marginBottom = '5px';
+                  messageElement.appendChild(previewElement);
+              })
+              .catch(error => {
+                  console.error('Error fetching link information:', error);
+                  previewElement.innerHTML = `Preview: <a href="${matches[0]}" target="_blank">${matches[0]}</a>`;
+                  previewElement.style.marginBottom = '5px';
+                  messageElement.appendChild(previewElement);
+              });
+      }
+
+
+
     
       // Si es un enlace a una imagen, mostrar la vista previa
       if (isImageLink(message)) {
@@ -205,53 +234,49 @@ function addMessageToChat(username, message) {
 
   function initialChatLoad() {
     fetch('https://chat.tiburoncin.lat/messages')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json();
-      })
-      .then(data => {
-        const mensajesEnOrdenDescendente = data.reverse();
-
-        mensajesEnOrdenDescendente.forEach(message => {
-          addMessageToChat(message.username, message.message);
+        .then(response => response.json())
+        .then(data => {
+            const mensajesEnOrdenDescendente = data.reverse();
+            mensajesEnOrdenDescendente.forEach(message => {
+                addMessageToChat(message.username, message.message);
+            });
+            // Desplaza al final solo en la carga inicial
+            middleContainer.scrollTop = middleContainer.scrollHeight;
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
         });
-
-        // Desplaza al final solo en la carga inicial
-        middleContainer.scrollTop = middleContainer.scrollHeight;
-      })
-      .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-      });
 }
 
-let lastMessageId = 0; // O usa un timestamp si está disponible
+
+let lastMessageId = 0; // Asumiendo que los IDs de mensajes son numéricos y comienzan desde 1
 
 function refreshChat() {
-    fetch(`https://chat.tiburoncin.lat/messages?afterId=${lastMessageId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.length > 0) {
-          // Suponiendo que los mensajes están ordenados por ID de forma ascendente
-          data.forEach(message => {
-            addMessageToChat(message.username, message.message);
-            if (message.id > lastMessageId) {
-              lastMessageId = message.id; // Actualiza el último ID de mensaje mostrado
-            }
-          });
-        }
-      })
-      .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-      });
+    fetch('https://chat.tiburoncin.lat/messages')
+        .then(response => response.json())
+        .then(data => {
+            const mensajesEnOrdenDescendente = data.reverse();
+            
+            mensajesEnOrdenDescendente.forEach(message => {
+                if (message.id > lastMessageId) {
+                    addMessageToChat(message.username, message.message);
+                    lastMessageId = message.id; // Actualizamos el ID del último mensaje añadido
+                }
+            });
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
 }
 
-// Asegúrate de llamar a initialChatLoad() para la carga inicial cuando la página se carga
-initialChatLoad();
 
-// Configura el refresco automático para llamar a refreshChat
-setInterval(refreshChat, 5000);
+
+document.addEventListener('DOMContentLoaded', function() {
+  initialChatLoad(); // Carga inicial de mensajes
+  setInterval(refreshChat, 5000); // Refresco automático cada 5 segundos
+});
+
+
 
 
 
@@ -298,7 +323,11 @@ setInterval(refreshChat, 5000);
     }
   }
   
-
+  function detectURLs(message) {
+    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
+    return message.match(urlRegex);
+}
+ 
   
 
 
@@ -320,6 +349,55 @@ setInterval(refreshChat, 5000);
     .catch(error => {
       console.error('There has been a problem with your fetch operation:', error);
     });
+
+    let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+function toggleTheme() {
+    isDarkMode = !isDarkMode;
+    applyTheme(isDarkMode);
+    localStorage.setItem('darkMode', isDarkMode);
+}
+
+
+function applyTheme(darkMode) {
+    if (darkMode) {
+        document.body.style.backgroundColor = 'rgba(20, 33, 61)';
+        document.body.style.color = 'white';
+        leftDiv.style.backgroundColor = "rgb(0,0,0,0.4)"; 
+        middleContainer.style.backgroundColor = 'rgba(0,0,0,0.6)';
+        rightDiv.style.backgroundColor = "rgb(0,0,0,0.5)"; 
+        container.style.background = 'rgba(0, 0, 0, 0.4)';
+        sendButton.style.background = 'rgb(0,0,0,0.4)';
+        textField.style.background = "rgb(0,0,0,0.4)";
+        archivebutton.style.background = 'rgb(0,0,0,0.4)';
+        header.style.backgroundColor = "rgb(0, 0,0,0.4)";
+        swap.style.background = 'rgb(0,0,0,0.4)';
+        textfieldforchat.style.background = "rgb(0,0,0,0.4)";
+    } else {
+        document.body.style.backgroundColor = 'rgba(254, 250, 224)';
+        document.body.style.color = 'white';
+        container.style.backgroundColor = 'rgba(254, 250, 224)';
+        leftDiv.style.backgroundColor = 'rgba(204, 213, 174)';
+        rightDiv.style.backgroundColor = 'rgba(204, 213, 174)';
+        middleContainer.style.backgroundColor = 'rgba(250, 237, 205)';
+        sendButton.style.background = 'rgb(250, 237, 205)';
+        textField.style.background = "rgb(250, 237, 205)";
+        archivebutton.style.background = 'rgb(250, 237, 205)';
+        header.style.backgroundColor = "rgb(250, 237, 205, 0.5)";
+        swap.style.background = 'rgb(250, 237, 205)';
+        textfieldforchat.style.background = "rgb(250, 237, 205)";
+        
+        
+    }
+}
+
+
+// Aplicar el tema al cargar la página
+applyTheme(isDarkMode);
+
+// Agregar evento al botón "Swap"
+swap.addEventListener('click', toggleTheme);
+
 
 document.body.appendChild(leftDiv);
 document.body.appendChild(rightDiv);
