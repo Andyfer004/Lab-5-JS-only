@@ -159,6 +159,7 @@ card.style.alignItems = 'center'; // Opcional: centra los elementos verticalment
 // Suponiendo que tienes un elemento con id="chatContainer" para contener los mensajes
 
 function addMessageToChat(username, message) {
+
     const messageElement = document.createElement('div');
     messageElement.style.borderRadius = '10px';
     messageElement.style.backgroundColor = 'rgba(0,0,0,0.1)';
@@ -171,6 +172,11 @@ function addMessageToChat(username, message) {
     messageElement.style.overflow = 'auto';
     messageElement.style.borderRadius = '10px';
     messageElement.style.wordWrap = 'break-word';
+
+    if (username === 'Andy') {
+      messageElement.style.marginLeft = 'auto';  // Move message to the right
+      messageElement.style.backgroundColor = 'rgba(0,0,0,1)';
+  }
 
     function isImageLink(text) {
         // Puedes mejorar esta lógica según tus necesidades
@@ -193,7 +199,62 @@ function addMessageToChat(username, message) {
     messageElement.style.backgroundColor = 'rgba(0,0,0,1)';
     middleContainer.appendChild(messageElement);
     middleContainer.scrollTop = middleContainer.scrollHeight;
+    
   }
+
+
+  function initialChatLoad() {
+    fetch('https://chat.tiburoncin.lat/messages')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        const mensajesEnOrdenDescendente = data.reverse();
+
+        mensajesEnOrdenDescendente.forEach(message => {
+          addMessageToChat(message.username, message.message);
+        });
+
+        // Desplaza al final solo en la carga inicial
+        middleContainer.scrollTop = middleContainer.scrollHeight;
+      })
+      .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+      });
+}
+
+let lastMessageId = 0; // O usa un timestamp si está disponible
+
+function refreshChat() {
+    fetch(`https://chat.tiburoncin.lat/messages?afterId=${lastMessageId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.length > 0) {
+          // Suponiendo que los mensajes están ordenados por ID de forma ascendente
+          data.forEach(message => {
+            addMessageToChat(message.username, message.message);
+            if (message.id > lastMessageId) {
+              lastMessageId = message.id; // Actualiza el último ID de mensaje mostrado
+            }
+          });
+        }
+      })
+      .catch(error => {
+        console.error('There has been a problem with your fetch operation:', error);
+      });
+}
+
+// Asegúrate de llamar a initialChatLoad() para la carga inicial cuando la página se carga
+initialChatLoad();
+
+// Configura el refresco automático para llamar a refreshChat
+setInterval(refreshChat, 5000);
+
+
+
 
   sendButton.addEventListener('click', () => {
     sendMessage();
@@ -236,6 +297,10 @@ function addMessageToChat(username, message) {
       textField.value = '';
     }
   }
+  
+
+  
+
 
   fetch('https://chat.tiburoncin.lat/messages')
     .then(response => {
