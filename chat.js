@@ -15,6 +15,7 @@ leftDiv.style.float = "left";
 leftDiv.style.backgroundColor = "rgb(0,0,0,0.4)"; // Solo para diferenciar las secciones
 leftDiv.style.borderRadius = "20px";
 leftDiv.style.marginRight = "1%";
+leftDiv.style.overflowY = 'auto';
 
 rightDiv.style.width = "75%";
 rightDiv.style.height = "90vh";
@@ -124,14 +125,15 @@ middleContainer.style.overflowY = 'scroll';
 
 
 
-const textfieldforchat = document.createElement('input');
+const textfieldforchat = document.createElement('div');
+//agregar mensaje dentro del div
+textfieldforchat.textContent = 'Chat Server of class';
+textfieldforchat.style.padding = '5%'; // Añade un padding de 10px
 textfieldforchat.type = 'text'; // Establece el tipo de input como text
-textfieldforchat.style.paddingLeft = '5%'; // Añade un padding de 10px
-textfieldforchat.style.paddingRight = '3%'; // Añade un padding de 10px
 textfieldforchat.style.fontSize = '2vh';
 textfieldforchat.placeholder = 'Search'; // Opcional: añade un placeholder 
 textfieldforchat.style.height = "5%";
-textfieldforchat.style.width = "90%";
+textfieldforchat.style.width = "80%";
 textfieldforchat.style.margin = "5%";
 textfieldforchat.style.borderRadius = "10px";
 textfieldforchat.style.background = "rgb(0,0,0,0.4)";
@@ -149,7 +151,7 @@ card.style.margin = "5%";
 card.style.borderRadius = "10px";
 card.style.backgroundColor = "rgb(0, 0,0,0.4)";
 card.style.display = 'flex'; // Activa Flexbox
-card.textContent = 'Chat Server of class';
+card.textContent = 'Users';
 card.style.fontSize = '2vh';
 card.style.color = 'white';
 card.style.padding = '10%';
@@ -172,6 +174,18 @@ function addMessageToChat(username, message) {
     messageElement.style.overflow = 'auto';
     messageElement.style.borderRadius = '10px';
     messageElement.style.wordWrap = 'break-word';
+
+    messageElement.classList.add('chat-message');
+    
+    // Agregamos eventos para gestionar la animación al pasar el mouse
+    messageElement.addEventListener('mouseenter', () => {
+        messageElement.style.transform = 'scale(0.9)';
+    });
+
+    messageElement.addEventListener('mouseleave', () => {
+        messageElement.style.transform = 'scale(1)';
+    });
+
 
     if (username === 'Andy') {
       messageElement.style.marginLeft = 'auto';  // Move message to the right
@@ -230,23 +244,46 @@ function addMessageToChat(username, message) {
     middleContainer.scrollTop = middleContainer.scrollHeight;
     
   }
+  function addChatCard(username) {
+    const card = document.createElement('button');
+    card.style.position = 'relative';
+    card.style.width = '90%';
+    card.style.height = '10%'; // Ajusta la altura según necesites
+    card.style.margin = "5%";
+    card.style.borderRadius = "10px";
+    card.style.backgroundColor = "rgb(0, 0,0,0.4)";
+    card.style.display = 'flex'; // Activa Flexbox
+    card.textContent = ` ${username}`;
+    card.style.fontSize = '2vh';
+    card.style.color = 'white';
+    card.style.padding = '10%';
+    card.style.alignItems = 'center'; // Opcional: centra los elementos verticalmente
 
-
-  function initialChatLoad() {
-    fetch('https://chat.tiburoncin.lat/messages')
-        .then(response => response.json())
-        .then(data => {
-            const mensajesEnOrdenDescendente = data.reverse();
-            mensajesEnOrdenDescendente.forEach(message => {
-                addMessageToChat(message.username, message.message);
-            });
-            // Desplaza al final solo en la carga inicial
-            middleContainer.scrollTop = middleContainer.scrollHeight;
-        })
-        .catch(error => {
-            console.error('There has been a problem with your fetch operation:', error);
-        });
+    leftDiv.appendChild(card);
 }
+
+
+  async function initialChatLoad() {
+    try {
+      const response = await fetch('https://chat.tiburoncin.lat/messages');
+      const data = await response.json();
+      const uniqueUsernames = [...new Set(data.map(message => message.username))];
+
+      uniqueUsernames.forEach(username => {
+        addChatCard(username);
+      });
+
+      const mensajesEnOrdenDescendente = data.reverse();
+  
+      mensajesEnOrdenDescendente.forEach(async (message) => {
+        await addMessageToChat(message.username, message.message);
+      });
+  
+      middleContainer.scrollTop = middleContainer.scrollHeight;
+    } catch (error) {
+      console.error('There has been a problem with your fetch operation:', error);
+    }
+  }
 
 
 let lastMessageId = 0; // Asumiendo que los IDs de mensajes son numéricos y comienzan desde 1
@@ -274,6 +311,7 @@ function refreshChat() {
 document.addEventListener('DOMContentLoaded', function() {
   initialChatLoad(); // Carga inicial de mensajes
   setInterval(refreshChat, 5000); // Refresco automático cada 5 segundos
+  
 });
 
 
@@ -327,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig;
     return message.match(urlRegex);
 }
- 
+
   
 
 
