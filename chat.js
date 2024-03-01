@@ -44,7 +44,7 @@ textField.style.fontSize = '2vh';
 textField.placeholder = 'Type your message.....'; // Opcional: añade un placeholder
 textField.style.position = "relative";
 textField.style.height = "100%";
-textField.style.width = "80%";
+textField.style.width = "90%";
 textField.style.marginLeft = "0%";
 textField.style.background = "rgb(0,0,0,0.4)";
 textField.style.color = "white";
@@ -68,14 +68,13 @@ archivebutton.style.color = 'white';
 archivebutton.style.borderRadius = '10px 0 0 10px';
 
 const sendButton = document.createElement('button');
-sendButton.textContent = '⌲';
+sendButton.textContent = 'send';
 sendButton.style.fontSize = '2vh';
 sendButton.style.position = 'relative';
 sendButton.style.right = '0';
 sendButton.style.top = '0';
 sendButton.style.width = '10%'; // Ajusta el ancho del botón según necesites
 sendButton.style.height = '100%';
-sendButton.style.border = 'none';
 sendButton.style.background = 'rgb(0,0,0,0.4)';
 sendButton.style.color = 'white';
 sendButton.style.borderRadius = '0 10px 10px 0';
@@ -117,7 +116,7 @@ swap.style.height = '50%';
 
 
 const middleContainer = document.createElement('div');
-middleContainer.style.flexGrow = '0.8';
+middleContainer.style.flexGrow = '1';
 middleContainer.style.backgroundColor = 'rgba(0,0,0,0.6)';
 middleContainer.style.borderRadius = '0 0 20px 20px';
 middleContainer.style.margin = '0% 2% 2% 2%';
@@ -443,6 +442,7 @@ rightDiv.appendChild(header);
 rightDiv.appendChild(middleContainer);
 rightDiv.appendChild(container);
 container.appendChild(archivebutton);
+container.removeChild(archivebutton);
 container.appendChild(textField);
 container.appendChild(sendButton);
 header.appendChild(headerText);
